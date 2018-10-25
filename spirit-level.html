@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+<title>Accelerometer visualizer</title>
+</head>
+
+<body>
+
+Websocket:
+<input id="websocket" type="text" value="ws://localhost:9001" />
+<button onclick="openWebsocket()">Connect</button>
+<button onclick="closeWebsocket()">Disconnect</button>
+
+<br />
+<br />
+
+<svg width="400" height="400">
+
+<!-- cross hairs -->
+<line x1="200" y1="0" x2="200" y2="400" stroke="black" stroke-width="1" />
+<line x1="0" y1="200" x2="400" y2="200" stroke="black" stroke-width="1" />
+
+<!-- concentric circles -->
+<circle cx="200" cy="200" r="50" stroke="black" stroke-width="1" fill="none" />
+<circle cx="200" cy="200" r="100" stroke="black" stroke-width="1" fill="none" />
+<circle cx="200" cy="200" r="150" stroke="black" stroke-width="1" fill="none" />
+<circle cx="200" cy="200" r="200" stroke="black" stroke-width="1" fill="none" />
+
+<!-- red ball -->
+<circle id="ball" cx="200" cy="200" r="5" stroke="red" stroke-width="1" fill="red" />
+</svg>
+
+<script>
+var socket;
+function openWebsocket () {
+
+	// Open websocket (address in web UI form)
+	var websocketAddr = document.getElementById("websocket").value;
+	socket  = new WebSocket(websocketAddr);
+
+	// Handle websocket data message by moving red ball
+	socket.onmessage = function(msg){
+		console.log("got message: " + msg.data);
+		var accl = JSON.parse(msg.data);
+		document.getElementById("ball").setAttribute("cx", 200 + accl.x * 200);
+		document.getElementById("ball").setAttribute("cy", 200 + accl.y * 200);
+	}
+
+	socket.onerror = function(event) {
+		alert("error: " + JSON.stringify(event));
+	}
+
+}
+function closeWebsocket () {
+	socket.close();
+}
+</script>
+</body>
+</html>

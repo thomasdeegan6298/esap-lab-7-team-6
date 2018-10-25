@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../../../favicon.ico">
+
+    <title>Raspberry Pi Weather Station</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="./css/dashboard.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+
+      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#"><img src="./image/logo-nuigalway.png" alt="NUIG logo" height="24" style="padding:0;margin:0;"/></a>
+      <span class="navbar-text col-sm-9 pull-left" style="color:white">Raspberry Pi + SenseHat Weather Station. Version 0.1</span>
+
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          <div class="sidebar-sticky">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link active" href="#">
+                  <span data-feather="sun"></span>
+                  Current conditions <span class="sr-only">(current)</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">
+                  <span data-feather="sliders"></span>
+                  Settings
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">
+                  <span data-feather="settings"></span>
+                  Test API
+                </a>
+              </li>
+            </ul>
+
+            
+
+
+          </div>
+        </nav>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+          <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Current weather conditions</h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                <span data-feather="calendar"></span>
+                Today
+              </button>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <canvas class="my-4 w-100" id="temperature_chart" width="900" height="380"></canvas>
+            </div>
+            <div class="col-md-6">
+              <img id="webcam_image" src="webcam.jpg" width="640" />
+            </div>
+         </div>
+
+         <div class="row">
+           <div class="col-md-6">
+             <canvas class="my-4 w-100" id="humidity_chart" width="900" height="380"></canvas>
+           </div>
+           <div class="col-md-6">
+             <canvas class="my-4 w-100" id="pressure_chart" width="900" height="380"></canvas>
+           </div>
+        </div>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="./js/jquery.min.js"></script>
+    <script src="../../assets/js/vendor/popper.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+    <script>
+      feather.replace()
+    </script>
+
+    <!-- Graphs -->
+    <script src="./js/moment.min.js"></script>
+    <xxscript src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></xxscript>
+    <script src="./js/Chart.min.js"></script>
+
+    <script>
+
+	var dateFormat = 'MMMM DD YYYY';
+	var date = moment('April 01 2017', dateFormat);
+
+	var labels = [date];
+
+	var temperature = [];
+	var humidity = [];
+	var pressure = [];
+
+	var temperature_ctx = document.getElementById('temperature_chart').getContext('2d');
+	var humidity_ctx = document.getElementById('humidity_chart').getContext('2d');
+	var pressure_ctx = document.getElementById('pressure_chart').getContext('2d');
+
+	var color = Chart.helpers.color;
+
+	var temperature_cfg = {
+		type: 'bar',
+		data: {
+			labels: labels,
+			datasets: [{
+				label: 'Temperature',
+				/* backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(), */
+				/*borderColor: window.chartColors.red,*/
+				data: temperature,
+				type: 'line',
+				pointRadius: 1,
+				fill: false,
+				lineTension: 0,
+				borderWidth: 2
+			}]
+		},
+		options: {
+			scales: {
+				xAxes: [{
+					type: 'time',
+					distribution: 'series',
+					time: {unit: 'minute'},
+					ticks: {
+						source: 'labels'
+					}
+				}],
+				yAxes: [{
+					scaleLabel: {
+						display: true,
+						labelString: 'Temperature °C'
+					}
+				}]
+			}
+		}
+	};
+	var humidity_cfg = {
+		type: 'bar',
+		data: {
+			labels: labels,
+			datasets: [{
+				label: 'Humidity',
+				/* backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(), */
+				/*borderColor: window.chartColors.red,*/
+				data: humidity,
+				type: 'line',
+				pointRadius: 1,
+				fill: false,
+				lineTension: 0,
+				borderWidth: 2
+			}]
+		},
+		options: {
+			scales: {
+				xAxes: [{
+					type: 'time',
+					distribution: 'series',
+					time: {unit: 'minute'},
+					ticks: {
+						source: 'labels'
+					}
+				}],
+				yAxes: [{
+					scaleLabel: {
+						display: true,
+						labelString: 'Relative Humidity %'
+					}
+				}]
+			}
+		}
+	};
+	var pressure_cfg = {
+		type: 'bar',
+		data: {
+			labels: labels,
+			datasets: [{
+				label: 'Pressure',
+				data: pressure,
+				type: 'line',
+				pointRadius: 1,
+				fill: false,
+				lineTension: 0,
+				borderWidth: 2
+			}]
+		},
+		options: {
+			scales: {
+				xAxes: [{
+					type: 'time',
+					distribution: 'series',
+					time: {unit: 'minute'},
+					ticks: {
+						source: 'labels'
+					}
+				}],
+				yAxes: [{
+					scaleLabel: {
+						display: true,
+						labelString: 'Pressure hPa'
+					}
+				}]
+			}
+		}
+	};
+	var temperatureChart = new Chart(temperature_ctx, temperature_cfg);
+        var humidityChart = new Chart(humidity_ctx, humidity_cfg);
+        var pressureChart = new Chart(pressure_ctx, pressure_cfg);
+</script>
+
+	<script>
+	var webcamUrl = window.location.protocol + '//' + window.location.hostname + ':8002/';
+       	var sensorUrl = window.location.protocol + '//' + window.location.hostname + ':8001/';
+
+	function refreshWebcam () {
+		 jQuery("#webcam_image").attr("src",webcamUrl);
+	}
+	jQuery(function(){
+
+		// Retrieve webcam image
+		setInterval(function(){
+			refreshWebcam();
+		},10000);
+
+		// Retrive sensor data
+		setInterval(function() {
+			console.log("fetching data from " + sensorUrl);
+			jQuery
+			.ajax({url:sensorUrl,method:"GET"})
+			.done(function(data){
+				var now = new Date();
+				temperature.push({t:now, y:data.temperature});
+				humidity.push({t:now, y:data.humidity});
+				pressure.push({t:now, y:data.pressure});
+				temperatureChart.update();
+				humidityChart.update();
+				pressureChart.update();
+			});
+		},5000);
+	});
+	</script>
+
+  </body>
+</html>
